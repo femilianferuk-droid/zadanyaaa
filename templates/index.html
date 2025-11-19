@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Bot - Web Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .login-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-input {
+            width: 300px;
+            padding: 15px;
+            margin: 10px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+        }
+
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-blue {
+            background: #2196F3;
+        }
+
+        .btn-blue:hover {
+            background: #1976D2;
+        }
+
+        .btn-red {
+            background: #f44336;
+        }
+
+        .btn-red:hover {
+            background: #da190b;
+        }
+
+        .dashboard {
+            display: none;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(5px);
+        }
+
+        .nav-btn.active {
+            background: #2196F3;
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #2196F3;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .task-reward {
+            background: #4CAF50;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .task-status {
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .status-active {
+            background: #4CAF50;
+        }
+
+        .status-pending {
+            background: #FF9800;
+        }
+
+        .status-completed {
+            background: #2196F3;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2a5298;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .user-info {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .balance {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Task Bot</h1>
+            <p>Выполняйте задания и зарабатывайте реальные деньги</p>
+        </div>
+
+        <div id="loginSection" class="login-section">
+            <h2>Вход в систему</h2>
+            <p>Введите ваш Telegram ID для входа</p>
+            <input type="number" id="userIdInput" class="login-input" placeholder="Ваш Telegram ID">
+            <button onclick="login()" class="btn">Войти</button>
+        </div>
+
+        <div id="dashboard" class="dashboard">
+            <div class="sidebar">
+                <div class="user-info">
+                    <h3 id="userName"></h3>
+                    <div class="balance" id="userBalance">0₽</div>
+                    <p>ID: <span id="userId"></span></p>
+                </div>
+                
+                <button class="nav-btn active" onclick="showSection('profile')">👤 Профиль</button>
+                <button class="nav-btn" onclick="showSection('createTask')">📋 Создать задание</button>
+                <button class="nav-btn" onclick="showSection('activeTasks')">🎯 Активные задания</button>
+                <button class="nav-btn" onclick="showSection('myTasks')">📊 Мои задания</button>
+                <button class="nav-btn" onclick="showSection('executingTasks')">🔄 Выполняемые задания</button>
+                <button class="btn btn-red" onclick="logout()" style="margin-top: 20px;">Выйти</button>
+            </div>
+
+            <div class="main-content">
+                <!-- Профиль -->
+                <div id="profileSection" class="content-section">
+                    <h2>👤 Профиль</h2>
+                    <div class="user-info">
+                        <h3 id="profileName"></h3>
+                        <div class="balance" id="profileBalance">0₽</div>
+                        <p>ID: <span id="profileId"></span></p>
+                    </div>
+                    <button class="btn" onclick="showDepositModal()">💳 Пополнить баланс</button>
+                    <button class="btn btn-blue" onclick="showWithdrawModal()">💰 Вывести средства</button>
+                </div>
+
+                <!-- Создание задания -->
+                <div id="createTaskSection" class="content-section" style="display: none;">
+                    <h2>📋 Создать задание</h2>
+                    <div class="form-group">
+                        <label>Описание задания:</label>
+                        <input type="text" id="taskDescription" placeholder="Краткое описание для списка заданий">
+                    </div>
+                    <div class="form-group">
+                        <label>Текст задания:</label>
+                        <textarea id="taskText" rows="4" placeholder="Подробное описание задания для исполнителя"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Вознаграждение (₽):</label>
+                        <input type="number" id="taskReward" step="0.1" min="0.1" placeholder="0.1">
+                    </div>
+                    <button class="btn" onclick="createTask()">Создать задание</button>
+                </div>
+
+                <!-- Активные задания -->
+                <div id="activeTasksSection" class="content-section" style="display: none;">
+                    <h2>🎯 Активные задания</h2>
+                    <div id="activeTasksList"></div>
+                </div>
+
+                <!-- Мои задания -->
+                <div id="myTasksSection" class="content-section" style="display: none;">
+                    <h2>📊 Мои задания</h2>
+                    <div id="myTasksList"></div>
+                </div>
+
+                <!-- Выполняемые задания -->
+                <div id="executingTasksSection" class="content-section" style="display: none;">
+                    <h2>🔄 Выполняемые задания</h2>
+                    <div id="executingTasksList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальные окна -->
+    <div id="depositModal" class="modal">
+        <div class="modal-content">
+            <h2>💳 Пополнение баланса</h2>
+            <p>По поводу пополнения/вывода, напишите сюда: @nezeexsupp, сразу укажите сумму!</p>
+            <p><strong>Минимальное пополнение: 10₽</strong></p>
+            <button class="btn" onclick="closeModal('depositModal')">Закрыть</button>
+        </div>
+    </div>
+
+    <div id="withdrawModal" class="modal">
+        <div class="modal-content">
+            <h2>💰 Вывод средств</h2>
+            <p>По поводу пополнения/вывода, напишите сюда: @nezeexsupp, сразу укажите сумму!</p>
+            <p><strong>Минимальный вывод: 50₽</strong></p>
+            <button class="btn" onclick="closeModal('withdrawModal')">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        function login() {
+            const userId = document.getElementById('userIdInput').value;
+            if (!userId) {
+                alert('Введите ID пользователя');
+                return;
+            }
+
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({user_id: parseInt(userId)})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentUser = data.user;
+                    showDashboard();
+                    loadProfile();
+                } else {
+                    alert('Пользователь не найден');
+                }
+            });
+        }
+
+        function showDashboard() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'grid';
+        }
+
+        function showSection(sectionName) {
+            // Скрыть все секции
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Показать выбранную секцию
+            document.getElementById(sectionName + 'Section').style.display = 'block';
+            
+            // Обновить активную кнопку
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Загрузить данные для секции
+            if (sectionName === 'profile') {
+                loadProfile();
+            } else if (sectionName === 'activeTasks') {
+                loadActiveTasks();
+            } else if (sectionName === 'myTasks') {
+                loadMyTasks();
+            } else if (sectionName === 'executingTasks') {
+                loadExecutingTasks();
+            }
+        }
+
+        function loadProfile() {
+            fetch('/profile')
+                .then(response => response.json())
+                .then(user => {
+                    document.getElementById('userName').textContent = '@' + (user.username || 'unknown');
+                    document.getElementById('userBalance').textContent = user.balance.toFixed(2) + '₽';
+                    document.getElementById('userId').textContent = user.user_id;
+                    
+                    document.getElementById('profileName').textContent = '@' + (user.username || 'unknown');
+                    document.getElementById('profileBalance').textContent = user.balance.toFixed(2) + '₽';
+                    document.getElementById('profileId').textContent = user.user_id;
+                });
+        }
+
+        function loadActiveTasks() {
+            fetch('/tasks/active')
+                .then(response => response.json())
+                .then(data => {
+                    const tasksList = document.getElementById('activeTasksList');
+                    tasksList.innerHTML = '';
+                    
+                    data.tasks.forEach(task => {
+                        const taskElement = document.createElement('div');
+                        taskElement.className = 'task-card';
+                        taskElement.innerHTML = `
+                            <div class="task-header">
+                                <h3>${task.description}</h3>
+                                <div class="task-reward">${task.reward}₽</div>
+                            </div>
+                            <p>${task.task_text}</p>
+                            <p><small>Создатель: @${task.creator_username}</small></p>
+                            <button class="btn btn-blue" onclick="takeTask(${task.task_id})">Взять задание</button>
+                        `;
+                        tasksList.appendChild(taskElement);
+                    });
+                });
+        }
+
+        function createTask() {
+            const description = document.getElementById('taskDescription').value;
+            const taskText = document.getElementById('taskText').value;
+            const reward = parseFloat(document.getElementById('taskReward').value);
+
+            if (!description || !taskText || !reward) {
+                alert('Заполните все поля');
+                return;
+            }
+
+            fetch('/tasks/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    description: description,
+                    task_text: taskText,
+                    reward: reward
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Задание успешно создано!');
+                    document.getElementById('taskDescription').value = '';
+                    document.getElementById('taskText').value = '';
+                    document.getElementById('taskReward').value = '';
+                    loadProfile(); // Обновить баланс
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            });
+        }
+
+        function takeTask(taskId) {
+            fetch('/tasks/take', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({task_id: taskId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Задание принято! Проверьте раздел "Выполняемые задания"');
+                    loadActiveTasks();
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            });
+        }
+
+        function showDepositModal() {
+            document.getElementById('depositModal').style.display = 'block';
+        }
+
+        function showWithdrawModal() {
+            document.getElementById('withdrawModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('userIdInput').value = '';
+        }
+
+        // Закрытие модальных окон при клике вне их
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
